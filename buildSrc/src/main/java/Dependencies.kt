@@ -33,7 +33,7 @@ object Versions {
     const val androidKTX = "1.3.2"
     const val fragmentKtx = "1.3.0"
     const val recyclerView = "1.1.0"
-    const val androidxRoom = "2.2.6"
+    const val androidxRoom = "2.4.0-alpha04"//""2.2.6"
     const val lifeCycle = "2.3.0"
     const val material = "1.3.0"
     const val support_fix_lib = "1.1.1"

@@ -19,17 +19,23 @@ package jp.hazuki.yuzubrowser.browser
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.content.res.AssetManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.gesture.GestureOverlayView
 import android.graphics.Color
 import android.media.AudioManager
+import android.net.Uri
 import android.os.*
 import android.print.PrintManager
+import android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS
 import android.text.TextUtils
+import android.util.Log
 import android.view.*
 import android.webkit.*
 import android.widget.*
@@ -139,7 +145,33 @@ class BrowserActivity : BrowserBaseActivity(), BrowserController, FinishAlertDia
             }
         }
     }
+    private fun isMyLauncherDefault(): Boolean {
+        val localPackageManager: PackageManager = packageManager
+        val intent = Intent("android.intent.action.MAIN")
+//        val intent = Intent("android.intent.action.VIEW")
+        intent.addCategory("android.intent.category.BROWSABLE")
+        val str: ResolveInfo? = localPackageManager.resolveActivity(
+            intent,
+            PackageManager.MATCH_DEFAULT_ONLY
+        )
+        val browserIntent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
+        val resolveInfo =
+            packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
 
+// This is the default browser's packageName
+
+// This is the default browser's packageName
+        val packageNameSetted = resolveInfo?.activityInfo?.packageName
+//        PackageManager.MATCH_DEFAULT_ONLY
+        Log.d("ITEM IS" , "ITEM IS ${packageNameSetted},  ${str?.activityInfo?.packageName}")
+        if(packageNameSetted != packageName){
+            getPackageManager().clearPackagePreferredActivities(getPackageName());
+        }
+        if(str?.activityInfo?.packageName != packageName){
+            getPackageManager().clearPackagePreferredActivities(getPackageName());
+        }
+        return packageNameSetted == packageName //&& str?.activityInfo?.packageName == packageName
+    }
     private val saveTabsRunnable = object : Runnable {
         override fun run() {
             tabManagerIn.saveData()
@@ -350,6 +382,7 @@ class BrowserActivity : BrowserBaseActivity(), BrowserController, FinishAlertDia
             userActionManager.onTouchEvent(event)
         }
         scrollSlop = ViewConfiguration.get(this).scaledPagingTouchSlop
+
     }
 
     override fun onStart() {
@@ -390,11 +423,25 @@ class BrowserActivity : BrowserBaseActivity(), BrowserController, FinishAlertDia
             actionController.run(it)
             delayAction = null
         }
+        if(!isMyLauncherDefault()){
+//            getPackageManager().clearPackagePreferredActivities(getPackageName());
+
+//            val selector = Intent(ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+////            val selector = Intent(Intent.ACTION_MAIN)
+//            selector.addCategory(Intent.CATEGORY_BROWSABLE)
+////            selector.addCategory(Intent.CATEGORY_DEFAULT)
+//            selector.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//            startActivity(selector)
+            startActivityForResult(Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS), 0);
+//            startActivity(getPackageManager().getLaunchIntentForPackage(packageName));
+        }
     }
 
     override fun onResume() {
         super.onResume()
         isResumed = true
+
+
     }
 
     override fun onPostResume() {
